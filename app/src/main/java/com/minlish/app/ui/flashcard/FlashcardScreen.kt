@@ -22,6 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.minlish.app.R
 import com.minlish.app.data.local.entity.CardEntity
 import com.minlish.app.ui.theme.MinLishTheme
@@ -55,11 +58,33 @@ fun FlashcardScreen(
             if (uiState.isLoading) {
                 Box(contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             } else if (uiState.currentCard != null) {
-                FlashcardContent(
-                    card = uiState.currentCard!!,
-                    onRate = { viewModel.onRateCard(it) },
-                    onPlayAudio = { viewModel.playAudio(uiState.currentCard!!.audioUrl) }
-                )
+                when (uiState.currentStage) {
+                    LearnStage.STUDY -> {
+                        FlashcardStudyContent(
+                            card = uiState.currentCard!!,
+                            onNextStage = { viewModel.nextStage() },
+                            onPlayAudio = { viewModel.playAudio(uiState.currentCard!!.audioUrl) }
+                        )
+                    }
+                    LearnStage.RECOGNIZE -> {
+                        FlashcardQuizzContent(
+                            card = uiState.currentCard!!,
+                            options = uiState.options,
+                            selectedOption = uiState.selectedOption,
+                            isCorrect = uiState.isCorrect,
+                            onOptionClick = { viewModel.handleQuizzAnswer(it) },
+                            onNextStage = { viewModel.nextStage() }
+                        )
+                    }
+                    LearnStage.PRODUCE -> {
+                        FlashcardWritingContent(
+                            card = uiState.currentCard!!,
+                            isCorrect = uiState.isCorrect,
+                            onCheckAnswer = { viewModel.handleWritingAnswer(it) },
+                            onRate = { viewModel.onRateCard(it) }
+                        )
+                    }
+                }
             } else if (uiState.isFinished) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -83,9 +108,9 @@ fun FlashcardScreen(
 }
 
 @Composable
-fun FlashcardContent(
+fun FlashcardStudyContent(
     card: CardEntity,
-    onRate: (Int) -> Unit,
+    onNextStage: () -> Unit,
     onPlayAudio: () -> Unit
 ) {
     var rotated by remember { mutableStateOf(false) }
@@ -102,11 +127,13 @@ fun FlashcardContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // 2. Core Layout: Box for stacking Front/Back
+        Text("Bước 1: Làm quen từ mới", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(16.dp))
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
+                .height(350.dp)
                 .graphicsLayer {
                     rotationY = rotation
                     cameraDistance = 12f * density
@@ -115,28 +142,21 @@ fun FlashcardContent(
             contentAlignment = Alignment.Center
         ) {
             if (rotation <= 90f) {
-                // 5.A Front: ONLY target word
                 Card(
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(16.dp), // 3. Larger for Flashcard
+                    shape = RoundedCornerShape(24.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = card.word,
-                            fontSize = 32.sp, // 4. Typography
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
+                        Text(text = card.word, fontSize = 36.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             } else {
-                // 5.A Back: meaning, example, audio
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer { rotationY = 180f },
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(24.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Column(
@@ -146,44 +166,26 @@ fun FlashcardContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text(
-                            text = card.word,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        card.pronunciation?.let {
-                            Text(
-                                text = it,
-                                fontSize = 18.sp,
-                                color = Color.Gray,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                            )
+                        card.imageUrl?.let { url ->
+                            if (url.isNotBlank()) {
+                                AsyncImage(
+                                    model = url,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(150.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
+                        Text(text = card.word, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text(text = card.pronunciation ?: "", color = Color.Gray)
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = card.meaning,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            textAlign = TextAlign.Center
-                        )
+                        Text(text = card.meaning, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = card.example,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        IconButton(onClick = onPlayAudio) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = stringResource(R.string.audio_desc),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-
-
+                        Text(text = card.example, textAlign = TextAlign.Center, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                     }
                 }
             }
@@ -191,16 +193,135 @@ fun FlashcardContent(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // 5.A Evaluation Footer: Colored buttons side-by-side
-        AnimatedVisibility(visible = rotated || rotation > 90f) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly // 2. Core Layout
+        Button(
+            onClick = onNextStage,
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text("Tôi đã hiểu, sang bước tiếp theo", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun FlashcardQuizzContent(
+    card: CardEntity,
+    options: List<String>,
+    selectedOption: String?,
+    isCorrect: Boolean?,
+    onOptionClick: (String) -> Unit,
+    onNextStage: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Bước 2: Kiểm tra nhận diện", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Card(
+            modifier = Modifier.fillMaxWidth().height(100.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = card.word, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        options.forEach { option ->
+            val isThisSelected = option == selectedOption
+            val color = when {
+                isThisSelected && isCorrect == true -> Color(0xFFC8E6C9)
+                isThisSelected && isCorrect == false -> Color(0xFFFFCDD2)
+                isCorrect == false && option == card.meaning -> Color(0xFFC8E6C9)
+                else -> MaterialTheme.colorScheme.surface
+            }
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .clickable(enabled = selectedOption == null) { onOptionClick(option) },
+                shape = RoundedCornerShape(12.dp),
+                color = color,
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
             ) {
-                SrsButton(stringResource(R.string.srs_again), Color(0xFFE57373)) { onRate(0) }
-                SrsButton(stringResource(R.string.srs_hard), Color(0xFFFFB74D)) { onRate(2) }
-                SrsButton(stringResource(R.string.srs_good), Color(0xFF81C784)) { onRate(4) }
-                SrsButton(stringResource(R.string.srs_easy), Color(0xFF64B5F6)) { onRate(5) }
+                Text(text = option, modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Medium)
+            }
+        }
+
+        if (selectedOption != null) {
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(onClick = onNextStage, modifier = Modifier.fillMaxWidth()) {
+                Text("Tiếp tục")
+            }
+        }
+    }
+}
+
+@Composable
+fun FlashcardWritingContent(
+    card: CardEntity,
+    isCorrect: Boolean?,
+    onCheckAnswer: (String) -> Unit,
+    onRate: (Int) -> Unit
+) {
+    var text by remember(card.id) { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Bước 3: Viết lại từ vựng", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = card.meaning, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(text = "(${card.pos})", color = Color.Gray)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        OutlinedTextField(
+            value = text,
+            onValueChange = { if (isCorrect == null) text = it },
+            label = { Text("Nhập từ tiếng Anh") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = isCorrect == false,
+            enabled = isCorrect == null
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        if (isCorrect == null) {
+            Button(onClick = { onCheckAnswer(text) }, modifier = Modifier.fillMaxWidth()) {
+                Text("Kiểm tra")
+            }
+        } else {
+            Text(
+                text = if (isCorrect) "Chính xác! 🎉" else "Chưa đúng rồi. Đáp án: ${card.word}",
+                color = if (isCorrect) Color(0xFF4CAF50) else Color.Red,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            Text("Bạn thấy từ này thế nào?", style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                SrsButton("Lại", Color(0xFFE57373)) { onRate(0) }
+                SrsButton("Khó", Color(0xFFFFB74D)) { onRate(2) }
+                SrsButton("Tốt", Color(0xFF81C784)) { onRate(4) }
+                SrsButton("Dễ", Color(0xFF64B5F6)) { onRate(5) }
             }
         }
     }
@@ -222,9 +343,9 @@ fun SrsButton(label: String, color: Color, onClick: () -> Unit) {
 @Composable
 fun FlashcardPreview() {
     MinLishTheme {
-        FlashcardContent(
+        FlashcardStudyContent(
             card = CardEntity(word = "Contract", meaning = "Hợp đồng", example = "Sign the contract.", level = 1, pos = "n", audioUrl = null, imageUrl = null, topic = "General"),
-            onRate = {},
+            onNextStage = {},
             onPlayAudio = {}
         )
     }

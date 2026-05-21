@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.minlish.app-mergeDebugResources-65:/values-bs/values-bs.xml",
+            "outputFile": "com.minlish.app-mergeDebugResources-67:/values-bs/values-bs.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ACRE\\.gradle\\caches\\transforms-4\\09b7666cbc186e99c6cb9ff501a34d8a\\transformed\\material3-release\\res\\values-bs\\values-bs.xml",

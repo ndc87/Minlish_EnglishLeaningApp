@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.minlish.app.data.local.dao.CardDao
 import com.minlish.app.data.local.entity.CardEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -15,33 +14,76 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PracticeViewModel @Inject constructor(
-    private val cardDao: CardDao
+    private val cardDao: com.minlish.app.data.local.dao.CardDao,
+    private val reviewDao: com.minlish.app.data.local.dao.ReviewDao
 ) : ViewModel() {
+
+    private var learnedCards: List<CardEntity> = emptyList()
+    private var allCards: List<CardEntity> = emptyList()
 
     var currentCard by mutableStateOf<CardEntity?>(null)
         private set
 
-    var userInput by mutableStateOf("")
+    var options by mutableStateOf<List<String>>(emptyList())
+        private set
+
+    var selectedOption by mutableStateOf<String?>(null)
     var isCorrect by mutableStateOf<Boolean?>(null)
     var isRevealed by mutableStateOf(false)
     var isLoading by mutableStateOf(false)
 
+    var score by mutableStateOf(0)
+    var totalQuestions by mutableStateOf(0)
+
     private var mediaPlayer: MediaPlayer? = null
 
     init {
-        loadNextCard()
+        viewModelScope.launch {
+            // Load all cards for distractors
+            allCards = cardDao.getAllCardsList()
+            
+            reviewDao.getLearnedCards().collect { 
+                learnedCards = it
+                if (currentCard == null && learnedCards.isNotEmpty()) loadNextCard()
+            }
+        }
     }
 
     fun loadNextCard() {
-        viewModelScope.launch {
-            isLoading = true
-            currentCard = cardDao.getRandomCard()
-            userInput = ""
-            isCorrect = null
-            isRevealed = false
-            isLoading = false
-            currentCard?.audioUrl?.let { playAudio(it) }
+        if (learnedCards.isEmpty()) {
+            currentCard = null
+            return
         }
+        
+        isLoading = true
+        val card = learnedCards.shuffled().first()
+        currentCard = card
+        generateOptions(card)
+        selectedOption = null
+        isCorrect = null
+        isRevealed = false
+        isLoading = false
+    }
+
+    private fun generateOptions(correctCard: CardEntity) {
+        // Use all cards for distractors to ensure we always have 4 options
+        val distractors = allCards
+            .filter { it.id != correctCard.id }
+            .shuffled()
+            .take(3)
+            .map { it.meaning }
+        
+        options = (distractors + correctCard.meaning).shuffled()
+    }
+
+    fun selectOption(option: String) {
+        if (isRevealed) return
+        selectedOption = option
+        val card = currentCard ?: return
+        isCorrect = option == card.meaning
+        isRevealed = true
+        totalQuestions++
+        if (isCorrect == true) score++
     }
 
     fun playAudio(url: String) {
@@ -63,12 +105,6 @@ class PracticeViewModel @Inject constructor(
                 e.printStackTrace()
             }
         }
-    }
-
-    fun checkAnswer() {
-        val card = currentCard ?: return
-        isCorrect = userInput.trim().equals(card.word, ignoreCase = true)
-        isRevealed = true
     }
 
     override fun onCleared() {

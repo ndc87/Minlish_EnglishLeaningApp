@@ -18,13 +18,19 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class LearnStage { STUDY, RECOGNIZE, PRODUCE }
+
 data class FlashcardUiState(
     val currentCard: CardEntity? = null,
     val currentReview: ReviewEntity? = null,
+    val currentStage: LearnStage = LearnStage.STUDY,
+    val options: List<String> = emptyList(),
     val isFinished: Boolean = false,
     val isLoading: Boolean = true,
     val currentIndex: Int = 0,
-    val totalCards: Int = 0
+    val totalCards: Int = 0,
+    val isCorrect: Boolean? = null,
+    val selectedOption: String? = null
 )
 
 
@@ -44,11 +50,20 @@ class FlashcardViewModel @Inject constructor(
     val uiState: StateFlow<FlashcardUiState> = _uiState.asStateFlow()
 
     private var dueCards: List<ReviewEntity> = emptyList()
+    private var allCardsForDistractors: List<CardEntity> = emptyList()
     private var currentIndex = 0
     private var mediaPlayer: MediaPlayer? = null
 
     init {
-        loadDueCards()
+        loadData()
+    }
+
+    private fun loadData() {
+        viewModelScope.launch {
+            // Load all cards once for distractors
+            allCardsForDistractors = cardDao.getAllCardsList()
+            loadDueCards()
+        }
     }
 
     private fun loadDueCards() {
@@ -64,7 +79,7 @@ class FlashcardViewModel @Inject constructor(
                 dueCards = reviews
                 if (dueCards.isNotEmpty()) {
                     _uiState.update { it.copy(totalCards = reviews.size) }
-                    showCard(0)
+                    showCard(0, LearnStage.STUDY)
                 } else {
                     _uiState.update { it.copy(isLoading = false, isFinished = true) }
                 }
@@ -72,35 +87,70 @@ class FlashcardViewModel @Inject constructor(
         }
     }
 
-    private fun showCard(index: Int) {
+    private fun showCard(index: Int, stage: LearnStage) {
         if (index < dueCards.size) {
             viewModelScope.launch {
                 val review = dueCards[index]
-                android.util.Log.d("FlashcardVM", "Loading card for review: ${review.cardId}")
                 val card = cardDao.getCardById(review.cardId)
                 
                 if (card == null) {
-                    android.util.Log.e("FlashcardVM", "Card NOT found for ID: ${review.cardId}. Skipping...")
                     currentIndex++
-                    showCard(currentIndex)
+                    showCard(currentIndex, LearnStage.STUDY)
                     return@launch
                 }
                 
-                android.util.Log.d("FlashcardVM", "Card found: ${card.word}")
-                
+                val options = if (stage == LearnStage.RECOGNIZE) {
+                    generateOptions(card)
+                } else emptyList()
+
                 _uiState.update { 
                     it.copy(
                         currentCard = card, 
                         currentReview = review, 
+                        currentStage = stage,
+                        options = options,
                         isLoading = false,
-                        currentIndex = index
+                        currentIndex = index,
+                        isCorrect = null,
+                        selectedOption = null
                     ) 
                 }
             }
         } else {
-            android.util.Log.d("FlashcardVM", "All cards finished for this session.")
             _uiState.update { it.copy(currentCard = null, isFinished = true, isLoading = false) }
         }
+    }
+
+    private fun generateOptions(correctCard: CardEntity): List<String> {
+        val distractors = allCardsForDistractors
+            .filter { it.id != correctCard.id }
+            .shuffled()
+            .take(3)
+            .map { it.meaning }
+        return (distractors + correctCard.meaning).shuffled()
+    }
+
+    fun nextStage() {
+        val currentState = _uiState.value
+        when (currentState.currentStage) {
+            LearnStage.STUDY -> showCard(currentIndex, LearnStage.RECOGNIZE)
+            LearnStage.RECOGNIZE -> showCard(currentIndex, LearnStage.PRODUCE)
+            LearnStage.PRODUCE -> {
+                // After finishing all 3 stages for this word, user chooses SRS rating?
+                // Or we auto-calculate? User usually wants to rate after the whole process.
+                // Let's stay on PRODUCE until they click an SRS rating.
+            }
+        }
+    }
+
+    fun handleQuizzAnswer(selected: String) {
+        val correct = _uiState.value.currentCard?.meaning
+        _uiState.update { it.copy(selectedOption = selected, isCorrect = selected == correct) }
+    }
+
+    fun handleWritingAnswer(answer: String) {
+        val correct = _uiState.value.currentCard?.word
+        _uiState.update { it.copy(isCorrect = answer.trim().equals(correct, ignoreCase = true)) }
     }
 
 
@@ -175,7 +225,7 @@ class FlashcardViewModel @Inject constructor(
 
             // 6. Move to next card
             currentIndex++
-            showCard(currentIndex)
+            showCard(currentIndex, LearnStage.STUDY)
         }
     }
 

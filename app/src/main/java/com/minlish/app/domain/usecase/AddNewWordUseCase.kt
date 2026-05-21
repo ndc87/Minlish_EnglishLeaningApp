@@ -18,9 +18,12 @@ class AddNewWordUseCase @Inject constructor(
         example: String,
         pronunciation: String? = null,
         descriptionEn: String? = null,
-        topic: String = "General"
-    ): Result<Unit> {
-        return try {
+        topic: String = "General",
+        collocation: String? = null,
+        relatedWords: String? = null,
+        note: String? = null
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
             val card = CardEntity(
                 word = word.trim(),
                 pos = pos.trim().lowercase(),
@@ -29,6 +32,9 @@ class AddNewWordUseCase @Inject constructor(
                 pronunciation = pronunciation,
                 descriptionEn = descriptionEn,
                 topic = topic,
+                collocation = collocation,
+                relatedWords = relatedWords,
+                note = note,
                 audioUrl = null,
                 imageUrl = null,
                 level = 1
@@ -39,6 +45,4 @@ class AddNewWordUseCase @Inject constructor(
             Result.failure(e)
         }
     }
-
-
 }

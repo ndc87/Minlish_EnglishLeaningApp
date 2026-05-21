@@ -1,13 +1,15 @@
 package com.minlish.app.ui.vocabulary
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -28,30 +30,37 @@ class AddWordViewModel @Inject constructor(
     var pronunciation by mutableStateOf("")
     var descriptionEn by mutableStateOf("")
     var topic by mutableStateOf("")
+    var collocation by mutableStateOf("")
+    var relatedWords by mutableStateOf("")
+    var note by mutableStateOf("")
     var isLoading by mutableStateOf(false)
 
     fun onAddClick(onSuccess: () -> Unit, onError: (String) -> Unit) {
         if (word.isBlank() || meaning.isBlank()) {
-            onError("Word and Meaning cannot be empty")
+            onError("Please fill in word and meaning")
             return
         }
         viewModelScope.launch {
             isLoading = true
             addNewWordUseCase(
-                word = word, 
-                pos = pos, 
-                meaning = meaning, 
+                word = word,
+                pos = pos,
+                meaning = meaning,
                 example = example,
                 pronunciation = pronunciation,
                 descriptionEn = descriptionEn,
-                topic = if (topic.isBlank()) "General" else topic
-            )
-                .onSuccess { onSuccess() }
-                .onFailure { onError(it.message ?: "Unknown error") }
+                topic = topic.ifBlank { "General" },
+                collocation = collocation,
+                relatedWords = relatedWords,
+                note = note
+            ).onSuccess {
+                onSuccess()
+            }.onFailure {
+                onError(it.message ?: "Unknown error")
+            }
             isLoading = false
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,15 +69,17 @@ fun AddWordScreen(
     onBack: () -> Unit,
     viewModel: AddWordViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Add New Word") },
+                title = { Text("Add New Word", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -76,77 +87,112 @@ fun AddWordScreen(
     ) { padding ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp)
-                .fillMaxSize(),
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedTextField(
                 value = viewModel.word,
                 onValueChange = { viewModel.word = it },
-                label = { Text("Word") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Word (English)*") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             )
-            OutlinedTextField(
-                value = viewModel.pos,
-                onValueChange = { viewModel.pos = it },
-                label = { Text("Part of Speech (e.g. noun, verb)") },
-                modifier = Modifier.fillMaxWidth()
-            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = viewModel.pos,
+                    onValueChange = { viewModel.pos = it },
+                    label = { Text("Type (n, v, adj...)") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                OutlinedTextField(
+                    value = viewModel.pronunciation,
+                    onValueChange = { viewModel.pronunciation = it },
+                    label = { Text("Pronunciation") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+
             OutlinedTextField(
                 value = viewModel.meaning,
                 onValueChange = { viewModel.meaning = it },
-                label = { Text("Meaning") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Meaning (Vietnamese)*") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             )
+
+            OutlinedTextField(
+                value = viewModel.descriptionEn,
+                onValueChange = { viewModel.descriptionEn = it },
+                label = { Text("English Definition") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+
             OutlinedTextField(
                 value = viewModel.example,
                 onValueChange = { viewModel.example = it },
                 label = { Text("Example Sentence") },
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
                 minLines = 2
             )
+
             OutlinedTextField(
-                value = viewModel.pronunciation,
-                onValueChange = { viewModel.pronunciation = it },
-                label = { Text("Pronunciation (e.g. /əˈɡriːmənt/)") },
-                modifier = Modifier.fillMaxWidth()
+                value = viewModel.collocation,
+                onValueChange = { viewModel.collocation = it },
+                label = { Text("Collocations") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             )
+
             OutlinedTextField(
-                value = viewModel.descriptionEn,
-                onValueChange = { viewModel.descriptionEn = it },
-                label = { Text("English Description") },
-                modifier = Modifier.fillMaxWidth()
+                value = viewModel.relatedWords,
+                onValueChange = { viewModel.relatedWords = it },
+                label = { Text("Related Words") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             )
+
             OutlinedTextField(
                 value = viewModel.topic,
                 onValueChange = { viewModel.topic = it },
-                label = { Text("Topic (e.g. Business, Travel)") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Topic") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            OutlinedTextField(
+                value = viewModel.note,
+                onValueChange = { viewModel.note = it },
+                label = { Text("Note / Example Meaning") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                minLines = 2
+            )
 
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
                     viewModel.onAddClick(
-                        onSuccess = {
-                            Toast.makeText(context, "Word added successfully", Toast.LENGTH_SHORT).show()
-                            onBack()
-                        },
-                        onError = { message ->
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                        }
+                        onSuccess = onBack,
+                        onError = { /* Show snackbar */ }
                     )
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp),
                 enabled = !viewModel.isLoading
             ) {
                 if (viewModel.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Add to Collection")
+                    Text("Save Word", fontWeight = FontWeight.Bold)
                 }
             }
         }

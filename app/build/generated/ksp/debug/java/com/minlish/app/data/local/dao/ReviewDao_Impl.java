@@ -12,6 +12,7 @@ import androidx.room.SharedSQLiteStatement;
 import androidx.room.util.CursorUtil;
 import androidx.room.util.DBUtil;
 import androidx.sqlite.db.SupportSQLiteStatement;
+import com.minlish.app.data.local.entity.CardEntity;
 import com.minlish.app.data.local.entity.ReviewEntity;
 import java.lang.Class;
 import java.lang.Exception;
@@ -379,6 +380,176 @@ public final class ReviewDao_Impl implements ReviewDao {
         }
       }
     }, $completion);
+  }
+
+  @Override
+  public Object getLearnedCardCount(final Continuation<? super Integer> $completion) {
+    final String _sql = "SELECT COUNT(*) FROM reviews WHERE repetitions > 0";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<Integer>() {
+      @Override
+      @NonNull
+      public Integer call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final Integer _result;
+          if (_cursor.moveToFirst()) {
+            final int _tmp;
+            _tmp = _cursor.getInt(0);
+            _result = _tmp;
+          } else {
+            _result = 0;
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object getDueCardCount(final long currentTime,
+      final Continuation<? super Integer> $completion) {
+    final String _sql = "SELECT COUNT(*) FROM reviews WHERE nextDate <= ?";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    _statement.bindLong(_argIndex, currentTime);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<Integer>() {
+      @Override
+      @NonNull
+      public Integer call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final Integer _result;
+          if (_cursor.moveToFirst()) {
+            final int _tmp;
+            _tmp = _cursor.getInt(0);
+            _result = _tmp;
+          } else {
+            _result = 0;
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Flow<List<CardEntity>> getLearnedCards() {
+    final String _sql = "\n"
+            + "        SELECT cards.* FROM cards \n"
+            + "        INNER JOIN reviews ON cards.id = reviews.cardId \n"
+            + "        WHERE reviews.repetitions > 0\n"
+            + "    ";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"cards",
+        "reviews"}, new Callable<List<CardEntity>>() {
+      @Override
+      @NonNull
+      public List<CardEntity> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfWord = CursorUtil.getColumnIndexOrThrow(_cursor, "word");
+          final int _cursorIndexOfPos = CursorUtil.getColumnIndexOrThrow(_cursor, "pos");
+          final int _cursorIndexOfMeaning = CursorUtil.getColumnIndexOrThrow(_cursor, "meaning");
+          final int _cursorIndexOfExample = CursorUtil.getColumnIndexOrThrow(_cursor, "example");
+          final int _cursorIndexOfPronunciation = CursorUtil.getColumnIndexOrThrow(_cursor, "pronunciation");
+          final int _cursorIndexOfDescriptionEn = CursorUtil.getColumnIndexOrThrow(_cursor, "descriptionEn");
+          final int _cursorIndexOfCollocation = CursorUtil.getColumnIndexOrThrow(_cursor, "collocation");
+          final int _cursorIndexOfRelatedWords = CursorUtil.getColumnIndexOrThrow(_cursor, "relatedWords");
+          final int _cursorIndexOfNote = CursorUtil.getColumnIndexOrThrow(_cursor, "note");
+          final int _cursorIndexOfAudioUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "audioUrl");
+          final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
+          final int _cursorIndexOfLevel = CursorUtil.getColumnIndexOrThrow(_cursor, "level");
+          final int _cursorIndexOfTopic = CursorUtil.getColumnIndexOrThrow(_cursor, "topic");
+          final int _cursorIndexOfTopicUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "topicUrl");
+          final List<CardEntity> _result = new ArrayList<CardEntity>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final CardEntity _item;
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpWord;
+            _tmpWord = _cursor.getString(_cursorIndexOfWord);
+            final String _tmpPos;
+            _tmpPos = _cursor.getString(_cursorIndexOfPos);
+            final String _tmpMeaning;
+            _tmpMeaning = _cursor.getString(_cursorIndexOfMeaning);
+            final String _tmpExample;
+            _tmpExample = _cursor.getString(_cursorIndexOfExample);
+            final String _tmpPronunciation;
+            if (_cursor.isNull(_cursorIndexOfPronunciation)) {
+              _tmpPronunciation = null;
+            } else {
+              _tmpPronunciation = _cursor.getString(_cursorIndexOfPronunciation);
+            }
+            final String _tmpDescriptionEn;
+            if (_cursor.isNull(_cursorIndexOfDescriptionEn)) {
+              _tmpDescriptionEn = null;
+            } else {
+              _tmpDescriptionEn = _cursor.getString(_cursorIndexOfDescriptionEn);
+            }
+            final String _tmpCollocation;
+            if (_cursor.isNull(_cursorIndexOfCollocation)) {
+              _tmpCollocation = null;
+            } else {
+              _tmpCollocation = _cursor.getString(_cursorIndexOfCollocation);
+            }
+            final String _tmpRelatedWords;
+            if (_cursor.isNull(_cursorIndexOfRelatedWords)) {
+              _tmpRelatedWords = null;
+            } else {
+              _tmpRelatedWords = _cursor.getString(_cursorIndexOfRelatedWords);
+            }
+            final String _tmpNote;
+            if (_cursor.isNull(_cursorIndexOfNote)) {
+              _tmpNote = null;
+            } else {
+              _tmpNote = _cursor.getString(_cursorIndexOfNote);
+            }
+            final String _tmpAudioUrl;
+            if (_cursor.isNull(_cursorIndexOfAudioUrl)) {
+              _tmpAudioUrl = null;
+            } else {
+              _tmpAudioUrl = _cursor.getString(_cursorIndexOfAudioUrl);
+            }
+            final String _tmpImageUrl;
+            if (_cursor.isNull(_cursorIndexOfImageUrl)) {
+              _tmpImageUrl = null;
+            } else {
+              _tmpImageUrl = _cursor.getString(_cursorIndexOfImageUrl);
+            }
+            final int _tmpLevel;
+            _tmpLevel = _cursor.getInt(_cursorIndexOfLevel);
+            final String _tmpTopic;
+            _tmpTopic = _cursor.getString(_cursorIndexOfTopic);
+            final String _tmpTopicUrl;
+            if (_cursor.isNull(_cursorIndexOfTopicUrl)) {
+              _tmpTopicUrl = null;
+            } else {
+              _tmpTopicUrl = _cursor.getString(_cursorIndexOfTopicUrl);
+            }
+            _item = new CardEntity(_tmpId,_tmpWord,_tmpPos,_tmpMeaning,_tmpExample,_tmpPronunciation,_tmpDescriptionEn,_tmpCollocation,_tmpRelatedWords,_tmpNote,_tmpAudioUrl,_tmpImageUrl,_tmpLevel,_tmpTopic,_tmpTopicUrl);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
   }
 
   @NonNull

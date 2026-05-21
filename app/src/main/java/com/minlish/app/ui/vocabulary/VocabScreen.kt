@@ -22,6 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.minlish.app.R
 import com.minlish.app.data.local.entity.CardEntity
 import com.minlish.app.ui.theme.MinLishTheme
@@ -257,6 +260,21 @@ fun VocabListItem(card: CardEntity) {
             // 5.B List Item Expansion (AnimatedVisibility)
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 12.dp)) {
+                    card.imageUrl?.let { url ->
+                        if (url.isNotBlank()) {
+                            AsyncImage(
+                                model = url,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(150.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                    }
+
                     Text(
                         text = "Meaning:",
                         style = MaterialTheme.typography.labelSmall,

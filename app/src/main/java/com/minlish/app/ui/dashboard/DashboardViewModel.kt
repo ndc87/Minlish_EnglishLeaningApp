@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class Badge(val id: String, val title: String, val icon: String, val description: String, val isUnlocked: Boolean)
+
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val userStatsDao: UserStatsDao,
@@ -36,8 +38,11 @@ class DashboardViewModel @Inject constructor(
             initialValue = null
         )
 
-    private val _analytics = MutableStateFlow(AppAnalytics(0.0, 0.0, "Beginner (A1)"))
+    private val _analytics = MutableStateFlow(AppAnalytics(0.0, 0.0, "Beginner (A1)", 0, 0, 0))
     val analytics: StateFlow<AppAnalytics> = _analytics.asStateFlow()
+
+    private val _badges = MutableStateFlow<List<Badge>>(emptyList())
+    val badges: StateFlow<List<Badge>> = _badges.asStateFlow()
 
     var dailyActivity by mutableStateOf<List<LearningLogDao.DayCount>>(emptyList())
         private set
@@ -52,11 +57,22 @@ class DashboardViewModel @Inject constructor(
 
     private fun loadAnalytics() {
         viewModelScope.launch {
-            _analytics.value = getAnalyticsUseCase()
+            val result = getAnalyticsUseCase()
+            _analytics.value = result
+            updateBadges(result)
         }
     }
 
-
+    private fun updateBadges(analytics: AppAnalytics) {
+        val stats = userStats.value ?: return
+        val newBadges = listOf(
+            Badge("1", "Người mới", "🌱", "Bắt đầu hành trình học tập", true),
+            Badge("2", "Chăm chỉ", "🔥", "Streak đạt 3 ngày", stats.currentStreak >= 3),
+            Badge("3", "Chinh phục", "🏆", "Độ chính xác > 80%", analytics.accuracy >= 80.0),
+            Badge("4", "Bậc thầy", "👑", "Thành thạo 50 từ", stats.masteredCount >= 50)
+        )
+        _badges.value = newBadges
+    }
 
     private fun loadDailyActivity() {
         viewModelScope.launch {

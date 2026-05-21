@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.minlish.app-mergeDebugResources-65:/values-vi/values-vi.xml",
+            "outputFile": "com.minlish.app-mergeDebugResources-67:/values-vi/values-vi.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ACRE\\.gradle\\caches\\transforms-4\\aab7b94d49c408bb2927c49b394925d9\\transformed\\ui-release\\res\\values-vi\\values-vi.xml",

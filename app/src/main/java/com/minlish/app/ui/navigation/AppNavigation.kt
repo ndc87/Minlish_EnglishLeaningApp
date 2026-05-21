@@ -16,6 +16,7 @@ import com.minlish.app.ui.auth.RegisterScreen
 import com.minlish.app.ui.dashboard.DashboardScreen
 import com.minlish.app.ui.flashcard.FlashcardScreen
 import com.minlish.app.ui.profile.ProfileScreen
+import com.minlish.app.ui.practice.PracticeScreen
 import com.minlish.app.ui.vocabulary.VocabScreen
 import com.minlish.app.ui.vocabulary.AddWordScreen
 import com.minlish.app.ui.splash.SplashScreen
@@ -109,6 +110,7 @@ fun AppNavigation() {
             ) {
                 FlashcardScreen(onBack = { navController.popBackStack() }) 
             }
+            composable(Screen.Practice.route) { PracticeScreen() }
             composable(Screen.Vocabulary.route) { 
                 VocabScreen(onAddWord = { navController.navigate(Screen.AddWord.route) }) 
             }

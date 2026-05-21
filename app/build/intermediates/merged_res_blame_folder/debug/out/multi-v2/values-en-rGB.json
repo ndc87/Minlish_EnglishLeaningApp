@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.minlish.app-mergeDebugResources-65:/values-en-rGB/values-en-rGB.xml",
+            "outputFile": "com.minlish.app-mergeDebugResources-67:/values-en-rGB/values-en-rGB.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ACRE\\.gradle\\caches\\transforms-4\\09b7666cbc186e99c6cb9ff501a34d8a\\transformed\\material3-release\\res\\values-en-rGB\\values-en-rGB.xml",

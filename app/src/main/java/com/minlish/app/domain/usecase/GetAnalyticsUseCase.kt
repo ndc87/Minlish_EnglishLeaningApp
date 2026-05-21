@@ -7,14 +7,17 @@ import javax.inject.Inject
 data class AppAnalytics(
     val accuracy: Double,
     val retentionRate: Double,
-    val levelEstimation: String
+    val levelEstimation: String,
+    val learnedCount: Int,
+    val dueCount: Int,
+    val todayCount: Int
 )
 
 class GetAnalyticsUseCase @Inject constructor(
     private val learningLogDao: LearningLogDao,
     private val reviewDao: ReviewDao
 ) {
-    suspend operator fun invoke(): AppAnalytics {
+    suspend operator fun invoke(): AppAnalytics = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
         val totalReviews = learningLogDao.getTotalReviewCount()
         val correctReviews = learningLogDao.getCorrectReviewCount()
         
@@ -32,6 +35,18 @@ class GetAnalyticsUseCase @Inject constructor(
             (retainedCards.toDouble() / totalCards.toDouble()) * 100
         } else 0.0
 
+        val learnedCount = reviewDao.getLearnedCardCount()
+        val dueCount = reviewDao.getDueCardCount(System.currentTimeMillis())
+
+        // Calculate words studied today
+        val startOfToday = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 0)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val todayCount = learningLogDao.getReviewCountSince(startOfToday)
+
         // Simple Level Estimation based on correct reviews (Total XP also reflects this)
         val levelEstimation = when {
             correctReviews > 500 -> "Advanced (C1)"
@@ -41,10 +56,13 @@ class GetAnalyticsUseCase @Inject constructor(
             else -> "Beginner (A1)"
         }
 
-        return AppAnalytics(
+        AppAnalytics(
             accuracy = accuracy.coerceIn(0.0, 100.0),
             retentionRate = retentionRate.coerceIn(0.0, 100.0),
-            levelEstimation = levelEstimation
+            levelEstimation = levelEstimation,
+            learnedCount = learnedCount,
+            dueCount = dueCount,
+            todayCount = todayCount
         )
     }
 }

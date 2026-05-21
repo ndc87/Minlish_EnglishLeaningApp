@@ -588,7 +588,7 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
           return (T) new LibraryViewModel(singletonCImpl.bindVocabularyRepositoryProvider.get());
 
           case 6: // com.minlish.app.ui.practice.PracticeViewModel 
-          return (T) new PracticeViewModel(singletonCImpl.cardDao());
+          return (T) new PracticeViewModel(singletonCImpl.cardDao(), singletonCImpl.reviewDao());
 
           case 7: // com.minlish.app.ui.profile.ProfileViewModel 
           return (T) new ProfileViewModel(singletonCImpl.userDao());

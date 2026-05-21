@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.minlish.app-mergeDebugResources-65:/values-en-rXC/values-en-rXC.xml",
+            "outputFile": "com.minlish.app-mergeDebugResources-67:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ACRE\\.gradle\\caches\\transforms-4\\d870856687bddf006ff0f73fa0e048b6\\transformed\\foundation-release\\res\\values-en-rXC\\values-en-rXC.xml",

@@ -33,5 +33,18 @@ interface ReviewDao {
 
     @Query("SELECT COUNT(*) FROM reviews")
     suspend fun getTotalCardCount(): Int
+
+    @Query("SELECT COUNT(*) FROM reviews WHERE repetitions > 0")
+    suspend fun getLearnedCardCount(): Int
+
+    @Query("SELECT COUNT(*) FROM reviews WHERE nextDate <= :currentTime")
+    suspend fun getDueCardCount(currentTime: Long): Int
+
+    @Query("""
+        SELECT cards.* FROM cards 
+        INNER JOIN reviews ON cards.id = reviews.cardId 
+        WHERE reviews.repetitions > 0
+    """)
+    fun getLearnedCards(): Flow<List<com.minlish.app.data.local.entity.CardEntity>>
 }
 

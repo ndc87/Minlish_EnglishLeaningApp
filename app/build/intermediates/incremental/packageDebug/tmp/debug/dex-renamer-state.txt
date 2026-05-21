@@ -1,4 +1,4 @@
-#Thu May 21 10:01:25 ICT 2026
+#Thu May 21 16:22:45 ICT 2026
 base.0=D\:\\LAPTRINHDIDONG\\Project\\MinLish\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 base.1=D\:\\LAPTRINHDIDONG\\Project\\MinLish\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
 base.10=D\:\\LAPTRINHDIDONG\\Project\\MinLish\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\3\\classes.dex
