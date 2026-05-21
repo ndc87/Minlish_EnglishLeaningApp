@@ -1,5 +1,7 @@
 package com.minlish.app.ui.vocabulary
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,11 +34,14 @@ fun VocabScreen(
 ) {
     val cards by viewModel.filteredCards.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val selectedFilter by viewModel.selectedFilter.collectAsState()
     
     VocabContent(
         cards = cards,
         searchQuery = searchQuery,
+        selectedFilter = selectedFilter,
         onSearchChange = { viewModel.onSearchQueryChange(it) },
+        onFilterChange = { viewModel.onFilterChange(it) },
         onAddWord = onAddWord
     )
 }
@@ -46,7 +51,9 @@ fun VocabScreen(
 fun VocabContent(
     cards: List<CardEntity>,
     searchQuery: String,
+    selectedFilter: VocabularyViewModel.SrsFilter,
     onSearchChange: (String) -> Unit,
+    onFilterChange: (VocabularyViewModel.SrsFilter) -> Unit,
     onAddWord: () -> Unit
 ) {
     Scaffold(
@@ -68,41 +75,141 @@ fun VocabContent(
                 onValueChange = onSearchChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 placeholder = { Text(stringResource(R.string.search_placeholder)) },
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
             )
 
-            // 5.B Vocabulary List Screen (LazyColumn)
+            // SRS Filters
+            ScrollableRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                VocabularyViewModel.SrsFilter.values().forEach { filter ->
+                    FilterChip(
+                        selected = selectedFilter == filter,
+                        onClick = { onFilterChange(filter) },
+                        label = { Text(filter.label) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = filter.color.copy(alpha = 0.2f),
+                            selectedLabelColor = filter.color
+                        )
+                    )
+                }
+            }
+
+            // Grouped Vocabulary List
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Topic Grouping (Sticky Header)
                 val grouped = cards.groupBy { it.topic }
                 grouped.forEach { (topic, topicCards) ->
-                    stickyHeader {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.surface
-                        ) {
-                            Text(
-                                text = topic,
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                    item(key = topic) {
+                        TopicExpandableHeader(
+                            topic = topic,
+                            count = topicCards.size,
+                            cards = topicCards
+                        )
                     }
-
-                    items(topicCards) { card ->
-                        VocabListItem(card)
+                }
+                
+                if (cards.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("No words found", color = Color.Gray)
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun TopicExpandableHeader(
+    topic: String,
+    count: Int,
+    cards: List<CardEntity>
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Column {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { isExpanded = !isExpanded },
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = topic,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Surface(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = count.toString(),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(visible = isExpanded) {
+            Column(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                cards.forEach { card ->
+                    VocabListItem(card)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ScrollableRow(
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    content: @Composable () -> Unit
+) {
+    androidx.compose.foundation.layout.Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = horizontalArrangement,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Spacer(modifier = Modifier.width(contentPadding.calculateLeftPadding(androidx.compose.ui.unit.LayoutDirection.Ltr)))
+        content()
+        Spacer(modifier = Modifier.width(contentPadding.calculateRightPadding(androidx.compose.ui.unit.LayoutDirection.Ltr)))
     }
 }
 
@@ -270,7 +377,9 @@ fun VocabPreview() {
                 CardEntity(word = "Provision", meaning = "Điều khoản", example = "Read the provision.", topic = "Contracts", pos = "n", audioUrl = null, imageUrl = null, level = 1)
             ),
             searchQuery = "",
+            selectedFilter = VocabularyViewModel.SrsFilter.ALL,
             onSearchChange = {},
+            onFilterChange = {},
             onAddWord = {}
         )
     }

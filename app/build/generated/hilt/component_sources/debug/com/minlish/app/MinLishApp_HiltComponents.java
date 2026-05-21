@@ -11,6 +11,7 @@ import com.minlish.app.di.UseCaseModule;
 import com.minlish.app.ui.auth.AuthViewModel_HiltModules;
 import com.minlish.app.ui.dashboard.DashboardViewModel_HiltModules;
 import com.minlish.app.ui.flashcard.FlashcardViewModel_HiltModules;
+import com.minlish.app.ui.flashcard.TopicSelectionViewModel_HiltModules;
 import com.minlish.app.ui.learning.LearningViewModel_HiltModules;
 import com.minlish.app.ui.library.LibraryViewModel_HiltModules;
 import com.minlish.app.ui.practice.PracticeViewModel_HiltModules;
@@ -189,6 +190,7 @@ public final class MinLishApp_HiltComponents {
           PracticeViewModel_HiltModules.KeyModule.class,
           ProfileViewModel_HiltModules.KeyModule.class,
           SplashViewModel_HiltModules.KeyModule.class,
+          TopicSelectionViewModel_HiltModules.KeyModule.class,
           VocabularyViewModel_HiltModules.KeyModule.class
       }
   )
@@ -235,6 +237,7 @@ public final class MinLishApp_HiltComponents {
           PracticeViewModel_HiltModules.BindsModule.class,
           ProfileViewModel_HiltModules.BindsModule.class,
           SplashViewModel_HiltModules.BindsModule.class,
+          TopicSelectionViewModel_HiltModules.BindsModule.class,
           VocabularyViewModel_HiltModules.BindsModule.class
       }
   )

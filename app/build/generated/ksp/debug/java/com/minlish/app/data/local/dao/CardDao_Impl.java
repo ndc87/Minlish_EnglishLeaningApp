@@ -502,6 +502,35 @@ public final class CardDao_Impl implements CardDao {
   }
 
   @Override
+  public Flow<List<String>> getAllTopics() {
+    final String _sql = "SELECT DISTINCT topic FROM cards";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"cards"}, new Callable<List<String>>() {
+      @Override
+      @NonNull
+      public List<String> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final List<String> _result = new ArrayList<String>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final String _item;
+            _item = _cursor.getString(0);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @Override
   public Object getAllCardsList(final Continuation<? super List<CardEntity>> $completion) {
     final String _sql = "SELECT * FROM cards";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);

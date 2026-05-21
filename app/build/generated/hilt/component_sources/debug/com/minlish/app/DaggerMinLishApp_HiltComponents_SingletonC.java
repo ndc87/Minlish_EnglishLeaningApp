@@ -59,6 +59,8 @@ import com.minlish.app.ui.dashboard.DashboardViewModel;
 import com.minlish.app.ui.dashboard.DashboardViewModel_HiltModules_KeyModule_ProvideFactory;
 import com.minlish.app.ui.flashcard.FlashcardViewModel;
 import com.minlish.app.ui.flashcard.FlashcardViewModel_HiltModules_KeyModule_ProvideFactory;
+import com.minlish.app.ui.flashcard.TopicSelectionViewModel;
+import com.minlish.app.ui.flashcard.TopicSelectionViewModel_HiltModules_KeyModule_ProvideFactory;
 import com.minlish.app.ui.learning.LearningViewModel;
 import com.minlish.app.ui.learning.LearningViewModel_HiltModules_KeyModule_ProvideFactory;
 import com.minlish.app.ui.library.LibraryViewModel;
@@ -435,7 +437,7 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
 
     @Override
     public Set<String> getViewModelKeys() {
-      return SetBuilder.<String>newSetBuilder(10).add(AddWordViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(AuthViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(DashboardViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(FlashcardViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(LearningViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(LibraryViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(PracticeViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(ProfileViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(SplashViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(VocabularyViewModel_HiltModules_KeyModule_ProvideFactory.provide()).build();
+      return SetBuilder.<String>newSetBuilder(11).add(AddWordViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(AuthViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(DashboardViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(FlashcardViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(LearningViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(LibraryViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(PracticeViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(ProfileViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(SplashViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(TopicSelectionViewModel_HiltModules_KeyModule_ProvideFactory.provide()).add(VocabularyViewModel_HiltModules_KeyModule_ProvideFactory.provide()).build();
     }
 
     @Override
@@ -460,6 +462,8 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
   }
 
   private static final class ViewModelCImpl extends MinLishApp_HiltComponents.ViewModelC {
+    private final SavedStateHandle savedStateHandle;
+
     private final SingletonCImpl singletonCImpl;
 
     private final ActivityRetainedCImpl activityRetainedCImpl;
@@ -484,6 +488,8 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
 
     private Provider<SplashViewModel> splashViewModelProvider;
 
+    private Provider<TopicSelectionViewModel> topicSelectionViewModelProvider;
+
     private Provider<VocabularyViewModel> vocabularyViewModelProvider;
 
     private ViewModelCImpl(SingletonCImpl singletonCImpl,
@@ -491,7 +497,7 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
         ViewModelLifecycle viewModelLifecycleParam) {
       this.singletonCImpl = singletonCImpl;
       this.activityRetainedCImpl = activityRetainedCImpl;
-
+      this.savedStateHandle = savedStateHandleParam;
       initialize(savedStateHandleParam, viewModelLifecycleParam);
 
     }
@@ -528,12 +534,13 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
       this.practiceViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 6);
       this.profileViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 7);
       this.splashViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 8);
-      this.vocabularyViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 9);
+      this.topicSelectionViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 9);
+      this.vocabularyViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 10);
     }
 
     @Override
     public Map<String, javax.inject.Provider<ViewModel>> getHiltViewModelMap() {
-      return MapBuilder.<String, javax.inject.Provider<ViewModel>>newMapBuilder(10).put("com.minlish.app.ui.vocabulary.AddWordViewModel", ((Provider) addWordViewModelProvider)).put("com.minlish.app.ui.auth.AuthViewModel", ((Provider) authViewModelProvider)).put("com.minlish.app.ui.dashboard.DashboardViewModel", ((Provider) dashboardViewModelProvider)).put("com.minlish.app.ui.flashcard.FlashcardViewModel", ((Provider) flashcardViewModelProvider)).put("com.minlish.app.ui.learning.LearningViewModel", ((Provider) learningViewModelProvider)).put("com.minlish.app.ui.library.LibraryViewModel", ((Provider) libraryViewModelProvider)).put("com.minlish.app.ui.practice.PracticeViewModel", ((Provider) practiceViewModelProvider)).put("com.minlish.app.ui.profile.ProfileViewModel", ((Provider) profileViewModelProvider)).put("com.minlish.app.ui.splash.SplashViewModel", ((Provider) splashViewModelProvider)).put("com.minlish.app.ui.vocabulary.VocabularyViewModel", ((Provider) vocabularyViewModelProvider)).build();
+      return MapBuilder.<String, javax.inject.Provider<ViewModel>>newMapBuilder(11).put("com.minlish.app.ui.vocabulary.AddWordViewModel", ((Provider) addWordViewModelProvider)).put("com.minlish.app.ui.auth.AuthViewModel", ((Provider) authViewModelProvider)).put("com.minlish.app.ui.dashboard.DashboardViewModel", ((Provider) dashboardViewModelProvider)).put("com.minlish.app.ui.flashcard.FlashcardViewModel", ((Provider) flashcardViewModelProvider)).put("com.minlish.app.ui.learning.LearningViewModel", ((Provider) learningViewModelProvider)).put("com.minlish.app.ui.library.LibraryViewModel", ((Provider) libraryViewModelProvider)).put("com.minlish.app.ui.practice.PracticeViewModel", ((Provider) practiceViewModelProvider)).put("com.minlish.app.ui.profile.ProfileViewModel", ((Provider) profileViewModelProvider)).put("com.minlish.app.ui.splash.SplashViewModel", ((Provider) splashViewModelProvider)).put("com.minlish.app.ui.flashcard.TopicSelectionViewModel", ((Provider) topicSelectionViewModelProvider)).put("com.minlish.app.ui.vocabulary.VocabularyViewModel", ((Provider) vocabularyViewModelProvider)).build();
     }
 
     @Override
@@ -572,7 +579,7 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
           return (T) new DashboardViewModel(singletonCImpl.userStatsDao(), singletonCImpl.learningLogDao(), singletonCImpl.databaseSeederProvider.get(), viewModelCImpl.getAnalyticsUseCase());
 
           case 3: // com.minlish.app.ui.flashcard.FlashcardViewModel 
-          return (T) new FlashcardViewModel(singletonCImpl.cardDao(), singletonCImpl.reviewDao(), singletonCImpl.learningLogDao(), singletonCImpl.userStatsDao(), singletonCImpl.provideCalculateSM2IntervalUseCaseProvider.get());
+          return (T) new FlashcardViewModel(singletonCImpl.cardDao(), singletonCImpl.reviewDao(), singletonCImpl.learningLogDao(), singletonCImpl.userStatsDao(), singletonCImpl.provideCalculateSM2IntervalUseCaseProvider.get(), viewModelCImpl.savedStateHandle);
 
           case 4: // com.minlish.app.ui.learning.LearningViewModel 
           return (T) new LearningViewModel(viewModelCImpl.getDueWordsUseCase(), viewModelCImpl.updateSrsLogicUseCase(), singletonCImpl.bindVocabularyRepositoryProvider.get());
@@ -589,8 +596,11 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
           case 8: // com.minlish.app.ui.splash.SplashViewModel 
           return (T) new SplashViewModel(singletonCImpl.databaseSeederProvider.get());
 
-          case 9: // com.minlish.app.ui.vocabulary.VocabularyViewModel 
-          return (T) new VocabularyViewModel(singletonCImpl.cardDao(), viewModelCImpl.exportImportUseCase());
+          case 9: // com.minlish.app.ui.flashcard.TopicSelectionViewModel 
+          return (T) new TopicSelectionViewModel(singletonCImpl.cardDao());
+
+          case 10: // com.minlish.app.ui.vocabulary.VocabularyViewModel 
+          return (T) new VocabularyViewModel(singletonCImpl.cardDao(), singletonCImpl.reviewDao(), viewModelCImpl.exportImportUseCase());
 
           default: throw new AssertionError(id);
         }

@@ -5,7 +5,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minlish.app.data.local.dao.CardDao
+import com.minlish.app.data.local.dao.ReviewDao
 import com.minlish.app.data.local.entity.CardEntity
+import com.minlish.app.data.local.entity.ReviewEntity
 import com.minlish.app.domain.usecase.ExportImportUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -15,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class VocabularyViewModel @Inject constructor(
     private val cardDao: CardDao,
+    private val reviewDao: ReviewDao,
     private val exportImportUseCase: ExportImportUseCase
 ) : ViewModel() {
 
@@ -29,18 +32,24 @@ class VocabularyViewModel @Inject constructor(
 
     val filteredCards: StateFlow<List<CardEntity>> = combine(
         cardDao.getAllCards(),
+        reviewDao.getAllReviews(),
         _searchQuery,
         _selectedFilter
-    ) { cards, query, filter ->
+    ) { cards, reviews, query, filter ->
+        val reviewMap = reviews.associateBy { it.cardId }
+        val currentTime = System.currentTimeMillis()
+
         cards.filter { card ->
             val matchesQuery = card.word.contains(query, ignoreCase = true) || 
                              card.meaning.contains(query, ignoreCase = true)
             
+            val review = reviewMap[card.id]
             val matchesFilter = when (filter) {
                 SrsFilter.ALL -> true
-                SrsFilter.NEW -> card.level == 0
-                SrsFilter.DUE -> card.level in 1..3 // Simplified logic for mock
-                SrsFilter.MASTERED -> card.level > 3
+                SrsFilter.NEW -> review == null || review.repetitions == 0
+                SrsFilter.LEARNING -> review != null && review.repetitions > 0 && review.nextDate > currentTime && review.interval < 21
+                SrsFilter.DUE -> review != null && review.nextDate <= currentTime
+                SrsFilter.MASTERED -> review != null && review.interval >= 21
             }
             
             matchesQuery && matchesFilter
@@ -78,6 +87,7 @@ class VocabularyViewModel @Inject constructor(
     enum class SrsFilter(val label: String, val color: Color) {
         ALL("All", Color(0xFFA020F0)), // Purple
         NEW("New", Color(0xFF2196F3)), // Blue
+        LEARNING("Learning", Color(0xFF9C27B0)), // Purple
         DUE("Due", Color(0xFFFF9800)), // Orange
         MASTERED("Mastered", Color(0xFF4CAF50)) // Green
     }

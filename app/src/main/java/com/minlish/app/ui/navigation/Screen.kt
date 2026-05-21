@@ -10,6 +10,8 @@ sealed class Screen(val route: String, val title: String = "", val icon: ImageVe
     object Splash : Screen("splash")
     object Dashboard : Screen("dashboard", "Dashboard", Icons.Default.Home)
     object Flashcard : Screen("flashcard", "Learn", Icons.Default.DateRange)
+    object LearnSession : Screen("learn_session/{topicId}")
+    object TopicSelection : Screen("topic_selection")
     object Vocabulary : Screen("vocabulary", "Vocab", Icons.Default.List)
     object AddWord : Screen("add_word")
     object Login : Screen("login")

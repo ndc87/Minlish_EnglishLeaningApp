@@ -12,6 +12,9 @@ interface CardDao {
     @Query("SELECT * FROM cards WHERE id = :id")
     suspend fun getCardById(id: Long): CardEntity?
 
+    @Query("SELECT DISTINCT topic FROM cards")
+    fun getAllTopics(): Flow<List<String>>
+
     @Query("DELETE FROM cards")
     suspend fun deleteAll()
 

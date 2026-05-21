@@ -214,6 +214,115 @@ public final class ReviewDao_Impl implements ReviewDao {
   }
 
   @Override
+  public Flow<List<ReviewEntity>> getAllReviews() {
+    final String _sql = "SELECT * FROM reviews";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"reviews"}, new Callable<List<ReviewEntity>>() {
+      @Override
+      @NonNull
+      public List<ReviewEntity> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfCardId = CursorUtil.getColumnIndexOrThrow(_cursor, "cardId");
+          final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfRepetitions = CursorUtil.getColumnIndexOrThrow(_cursor, "repetitions");
+          final int _cursorIndexOfInterval = CursorUtil.getColumnIndexOrThrow(_cursor, "interval");
+          final int _cursorIndexOfEaseFactor = CursorUtil.getColumnIndexOrThrow(_cursor, "easeFactor");
+          final int _cursorIndexOfLastDate = CursorUtil.getColumnIndexOrThrow(_cursor, "lastDate");
+          final int _cursorIndexOfNextDate = CursorUtil.getColumnIndexOrThrow(_cursor, "nextDate");
+          final List<ReviewEntity> _result = new ArrayList<ReviewEntity>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final ReviewEntity _item;
+            final long _tmpCardId;
+            _tmpCardId = _cursor.getLong(_cursorIndexOfCardId);
+            final String _tmpUserId;
+            _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
+            final int _tmpRepetitions;
+            _tmpRepetitions = _cursor.getInt(_cursorIndexOfRepetitions);
+            final int _tmpInterval;
+            _tmpInterval = _cursor.getInt(_cursorIndexOfInterval);
+            final double _tmpEaseFactor;
+            _tmpEaseFactor = _cursor.getDouble(_cursorIndexOfEaseFactor);
+            final long _tmpLastDate;
+            _tmpLastDate = _cursor.getLong(_cursorIndexOfLastDate);
+            final long _tmpNextDate;
+            _tmpNextDate = _cursor.getLong(_cursorIndexOfNextDate);
+            _item = new ReviewEntity(_tmpCardId,_tmpUserId,_tmpRepetitions,_tmpInterval,_tmpEaseFactor,_tmpLastDate,_tmpNextDate);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @Override
+  public Flow<List<ReviewEntity>> getDueReviewsByTopic(final String topic, final long currentTime) {
+    final String _sql = "\n"
+            + "        SELECT reviews.* FROM reviews \n"
+            + "        INNER JOIN cards ON reviews.cardId = cards.id \n"
+            + "        WHERE cards.topic = ? AND reviews.nextDate <= ?\n"
+            + "    ";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 2);
+    int _argIndex = 1;
+    _statement.bindString(_argIndex, topic);
+    _argIndex = 2;
+    _statement.bindLong(_argIndex, currentTime);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"reviews",
+        "cards"}, new Callable<List<ReviewEntity>>() {
+      @Override
+      @NonNull
+      public List<ReviewEntity> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfCardId = CursorUtil.getColumnIndexOrThrow(_cursor, "cardId");
+          final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfRepetitions = CursorUtil.getColumnIndexOrThrow(_cursor, "repetitions");
+          final int _cursorIndexOfInterval = CursorUtil.getColumnIndexOrThrow(_cursor, "interval");
+          final int _cursorIndexOfEaseFactor = CursorUtil.getColumnIndexOrThrow(_cursor, "easeFactor");
+          final int _cursorIndexOfLastDate = CursorUtil.getColumnIndexOrThrow(_cursor, "lastDate");
+          final int _cursorIndexOfNextDate = CursorUtil.getColumnIndexOrThrow(_cursor, "nextDate");
+          final List<ReviewEntity> _result = new ArrayList<ReviewEntity>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final ReviewEntity _item;
+            final long _tmpCardId;
+            _tmpCardId = _cursor.getLong(_cursorIndexOfCardId);
+            final String _tmpUserId;
+            _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
+            final int _tmpRepetitions;
+            _tmpRepetitions = _cursor.getInt(_cursorIndexOfRepetitions);
+            final int _tmpInterval;
+            _tmpInterval = _cursor.getInt(_cursorIndexOfInterval);
+            final double _tmpEaseFactor;
+            _tmpEaseFactor = _cursor.getDouble(_cursorIndexOfEaseFactor);
+            final long _tmpLastDate;
+            _tmpLastDate = _cursor.getLong(_cursorIndexOfLastDate);
+            final long _tmpNextDate;
+            _tmpNextDate = _cursor.getLong(_cursorIndexOfNextDate);
+            _item = new ReviewEntity(_tmpCardId,_tmpUserId,_tmpRepetitions,_tmpInterval,_tmpEaseFactor,_tmpLastDate,_tmpNextDate);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @Override
   public Object getRetainedCount(final long currentTime,
       final Continuation<? super Integer> $completion) {
     final String _sql = "SELECT COUNT(*) FROM reviews WHERE nextDate > ?";

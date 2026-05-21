@@ -590,7 +590,7 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
           return (T) new SplashViewModel(singletonCImpl.databaseSeederProvider.get());
 
           case 9: // com.minlish.app.ui.vocabulary.VocabularyViewModel 
-          return (T) new VocabularyViewModel(singletonCImpl.cardDao(), viewModelCImpl.exportImportUseCase());
+          return (T) new VocabularyViewModel(singletonCImpl.cardDao(), singletonCImpl.reviewDao(), viewModelCImpl.exportImportUseCase());
 
           default: throw new AssertionError(id);
         }

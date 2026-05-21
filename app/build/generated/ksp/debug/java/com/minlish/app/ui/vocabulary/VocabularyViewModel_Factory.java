@@ -1,6 +1,7 @@
 package com.minlish.app.ui.vocabulary;
 
 import com.minlish.app.data.local.dao.CardDao;
+import com.minlish.app.data.local.dao.ReviewDao;
 import com.minlish.app.domain.usecase.ExportImportUseCase;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
@@ -25,26 +26,31 @@ import javax.inject.Provider;
 public final class VocabularyViewModel_Factory implements Factory<VocabularyViewModel> {
   private final Provider<CardDao> cardDaoProvider;
 
+  private final Provider<ReviewDao> reviewDaoProvider;
+
   private final Provider<ExportImportUseCase> exportImportUseCaseProvider;
 
   public VocabularyViewModel_Factory(Provider<CardDao> cardDaoProvider,
+      Provider<ReviewDao> reviewDaoProvider,
       Provider<ExportImportUseCase> exportImportUseCaseProvider) {
     this.cardDaoProvider = cardDaoProvider;
+    this.reviewDaoProvider = reviewDaoProvider;
     this.exportImportUseCaseProvider = exportImportUseCaseProvider;
   }
 
   @Override
   public VocabularyViewModel get() {
-    return newInstance(cardDaoProvider.get(), exportImportUseCaseProvider.get());
+    return newInstance(cardDaoProvider.get(), reviewDaoProvider.get(), exportImportUseCaseProvider.get());
   }
 
   public static VocabularyViewModel_Factory create(Provider<CardDao> cardDaoProvider,
+      Provider<ReviewDao> reviewDaoProvider,
       Provider<ExportImportUseCase> exportImportUseCaseProvider) {
-    return new VocabularyViewModel_Factory(cardDaoProvider, exportImportUseCaseProvider);
+    return new VocabularyViewModel_Factory(cardDaoProvider, reviewDaoProvider, exportImportUseCaseProvider);
   }
 
-  public static VocabularyViewModel newInstance(CardDao cardDao,
+  public static VocabularyViewModel newInstance(CardDao cardDao, ReviewDao reviewDao,
       ExportImportUseCase exportImportUseCase) {
-    return new VocabularyViewModel(cardDao, exportImportUseCase);
+    return new VocabularyViewModel(cardDao, reviewDao, exportImportUseCase);
   }
 }

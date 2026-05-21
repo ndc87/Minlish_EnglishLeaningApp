@@ -19,6 +19,9 @@ import com.minlish.app.ui.profile.ProfileScreen
 import com.minlish.app.ui.vocabulary.VocabScreen
 import com.minlish.app.ui.vocabulary.AddWordScreen
 import com.minlish.app.ui.splash.SplashScreen
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
+import com.minlish.app.ui.flashcard.TopicSelectionScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -94,6 +97,16 @@ fun AppNavigation() {
             }
             composable(Screen.Dashboard.route) { DashboardScreen() }
             composable(Screen.Flashcard.route) { 
+                TopicSelectionScreen(
+                    onTopicSelected = { topic ->
+                        navController.navigate(Screen.LearnSession.route.replace("{topicId}", topic))
+                    }
+                )
+            }
+            composable(
+                route = Screen.LearnSession.route,
+                arguments = listOf(navArgument("topicId") { type = NavType.StringType })
+            ) {
                 FlashcardScreen(onBack = { navController.popBackStack() }) 
             }
             composable(Screen.Vocabulary.route) { 

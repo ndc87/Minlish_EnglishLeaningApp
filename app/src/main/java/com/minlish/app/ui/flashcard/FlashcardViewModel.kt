@@ -34,8 +34,11 @@ class FlashcardViewModel @Inject constructor(
     private val reviewDao: ReviewDao,
     private val learningLogDao: LearningLogDao,
     private val userStatsDao: UserStatsDao,
-    private val calculateSM2: CalculateSM2IntervalUseCase
+    private val calculateSM2: CalculateSM2IntervalUseCase,
+    savedStateHandle: androidx.lifecycle.SavedStateHandle
 ) : ViewModel() {
+
+    private val topicId: String? = savedStateHandle["topicId"]
 
     private val _uiState = MutableStateFlow(FlashcardUiState())
     val uiState: StateFlow<FlashcardUiState> = _uiState.asStateFlow()
@@ -50,8 +53,14 @@ class FlashcardViewModel @Inject constructor(
 
     private fun loadDueCards() {
         viewModelScope.launch {
-            reviewDao.getDueReviews(System.currentTimeMillis()).first().let { reviews ->
-                android.util.Log.d("FlashcardVM", "Due cards found: ${reviews.size}")
+            val flow = if (topicId != null && topicId != "All") {
+                reviewDao.getDueReviewsByTopic(topicId, System.currentTimeMillis())
+            } else {
+                reviewDao.getDueReviews(System.currentTimeMillis())
+            }
+            
+            flow.first().let { reviews ->
+                android.util.Log.d("FlashcardVM", "Due cards found: ${reviews.size} for topic: $topicId")
                 dueCards = reviews
                 if (dueCards.isNotEmpty()) {
                     _uiState.update { it.copy(totalCards = reviews.size) }

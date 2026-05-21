@@ -12,6 +12,16 @@ interface ReviewDao {
     @Query("SELECT * FROM reviews WHERE nextDate <= :currentTime")
     fun getDueReviews(currentTime: Long): Flow<List<ReviewEntity>>
 
+    @Query("SELECT * FROM reviews")
+    fun getAllReviews(): Flow<List<ReviewEntity>>
+
+    @Query("""
+        SELECT reviews.* FROM reviews 
+        INNER JOIN cards ON reviews.cardId = cards.id 
+        WHERE cards.topic = :topic AND reviews.nextDate <= :currentTime
+    """)
+    fun getDueReviewsByTopic(topic: String, currentTime: Long): Flow<List<ReviewEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateReview(review: ReviewEntity)
 
