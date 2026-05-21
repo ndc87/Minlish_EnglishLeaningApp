@@ -1,7 +1,7 @@
 package com.minlish.app.domain.usecase;
 
-import com.minlish.app.data.local.dao.StudyLogDao;
-import com.minlish.app.data.local.dao.UserDao;
+import com.minlish.app.data.local.dao.LearningLogDao;
+import com.minlish.app.data.local.dao.UserStatsDao;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
@@ -23,27 +23,29 @@ import javax.inject.Provider;
     "KotlinInternalInJava"
 })
 public final class CalculateStreakUseCase_Factory implements Factory<CalculateStreakUseCase> {
-  private final Provider<StudyLogDao> studyLogDaoProvider;
+  private final Provider<LearningLogDao> learningLogDaoProvider;
 
-  private final Provider<UserDao> userDaoProvider;
+  private final Provider<UserStatsDao> userStatsDaoProvider;
 
-  public CalculateStreakUseCase_Factory(Provider<StudyLogDao> studyLogDaoProvider,
-      Provider<UserDao> userDaoProvider) {
-    this.studyLogDaoProvider = studyLogDaoProvider;
-    this.userDaoProvider = userDaoProvider;
+  public CalculateStreakUseCase_Factory(Provider<LearningLogDao> learningLogDaoProvider,
+      Provider<UserStatsDao> userStatsDaoProvider) {
+    this.learningLogDaoProvider = learningLogDaoProvider;
+    this.userStatsDaoProvider = userStatsDaoProvider;
   }
 
   @Override
   public CalculateStreakUseCase get() {
-    return newInstance(studyLogDaoProvider.get(), userDaoProvider.get());
+    return newInstance(learningLogDaoProvider.get(), userStatsDaoProvider.get());
   }
 
-  public static CalculateStreakUseCase_Factory create(Provider<StudyLogDao> studyLogDaoProvider,
-      Provider<UserDao> userDaoProvider) {
-    return new CalculateStreakUseCase_Factory(studyLogDaoProvider, userDaoProvider);
+  public static CalculateStreakUseCase_Factory create(
+      Provider<LearningLogDao> learningLogDaoProvider,
+      Provider<UserStatsDao> userStatsDaoProvider) {
+    return new CalculateStreakUseCase_Factory(learningLogDaoProvider, userStatsDaoProvider);
   }
 
-  public static CalculateStreakUseCase newInstance(StudyLogDao studyLogDao, UserDao userDao) {
-    return new CalculateStreakUseCase(studyLogDao, userDao);
+  public static CalculateStreakUseCase newInstance(LearningLogDao learningLogDao,
+      UserStatsDao userStatsDao) {
+    return new CalculateStreakUseCase(learningLogDao, userStatsDao);
   }
 }

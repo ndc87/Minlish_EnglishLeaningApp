@@ -10,13 +10,16 @@ data class AppAnalytics(
     val levelEstimation: String,
     val learnedCount: Int,
     val dueCount: Int,
-    val todayCount: Int
+    val todayCount: Int,
+    val masteredCount: Int
 )
 
 class GetAnalyticsUseCase @Inject constructor(
     private val learningLogDao: LearningLogDao,
     private val reviewDao: ReviewDao
 ) {
+    private val MASTERED_INTERVAL_MINUTES = 30240 // 21 days
+
     suspend operator fun invoke(): AppAnalytics = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
         val totalReviews = learningLogDao.getTotalReviewCount()
         val correctReviews = learningLogDao.getCorrectReviewCount()
@@ -29,14 +32,16 @@ class GetAnalyticsUseCase @Inject constructor(
         // Retention Rate: Percentage of cards that are NOT "Again" or newly added
         // A card is "retained" if its next review date is in the future
         val totalCards = reviewDao.getTotalCardCount()
-        val retainedCards = reviewDao.getRetainedCount(System.currentTimeMillis())
+        val currentTime = System.currentTimeMillis()
+        val retainedCards = reviewDao.getRetainedCount(currentTime)
         
         val retentionRate = if (totalCards > 0) {
             (retainedCards.toDouble() / totalCards.toDouble()) * 100
         } else 0.0
 
-        val learnedCount = reviewDao.getLearnedCardCount()
-        val dueCount = reviewDao.getDueCardCount(System.currentTimeMillis())
+        val learnedCount = reviewDao.getLearningCardCount(currentTime, MASTERED_INTERVAL_MINUTES)
+        val dueCount = reviewDao.getDueCardCount(currentTime)
+        val masteredCount = reviewDao.getMasteredCardCount(MASTERED_INTERVAL_MINUTES)
 
         // Calculate words studied today
         val startOfToday = java.util.Calendar.getInstance().apply {
@@ -62,7 +67,8 @@ class GetAnalyticsUseCase @Inject constructor(
             levelEstimation = levelEstimation,
             learnedCount = learnedCount,
             dueCount = dueCount,
-            todayCount = todayCount
+            todayCount = todayCount,
+            masteredCount = masteredCount
         )
     }
 }

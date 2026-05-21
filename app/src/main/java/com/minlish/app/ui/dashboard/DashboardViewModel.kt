@@ -26,7 +26,8 @@ class DashboardViewModel @Inject constructor(
     private val userStatsDao: UserStatsDao,
     private val learningLogDao: LearningLogDao,
     private val databaseSeeder: com.minlish.app.data.local.DatabaseSeeder,
-    private val getAnalyticsUseCase: GetAnalyticsUseCase
+    private val getAnalyticsUseCase: GetAnalyticsUseCase,
+    private val calculateStreakUseCase: com.minlish.app.domain.usecase.CalculateStreakUseCase
 ) : ViewModel() {
 
     private val userId = "current_user"
@@ -38,7 +39,7 @@ class DashboardViewModel @Inject constructor(
             initialValue = null
         )
 
-    private val _analytics = MutableStateFlow(AppAnalytics(0.0, 0.0, "Beginner (A1)", 0, 0, 0))
+    private val _analytics = MutableStateFlow(AppAnalytics(0.0, 0.0, "Beginner (A1)", 0, 0, 0, 0))
     val analytics: StateFlow<AppAnalytics> = _analytics.asStateFlow()
 
     private val _badges = MutableStateFlow<List<Badge>>(emptyList())
@@ -50,6 +51,7 @@ class DashboardViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             databaseSeeder.seedIfNecessary()
+            calculateStreakUseCase(userId)
             loadDailyActivity()
             loadAnalytics()
         }
@@ -59,6 +61,13 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             val result = getAnalyticsUseCase()
             _analytics.value = result
+            
+            // Sync mastered count back to UserStats
+            val currentStats = userStats.value
+            if (currentStats != null && currentStats.masteredCount != result.masteredCount) {
+                userStatsDao.insertOrUpdateStats(currentStats.copy(masteredCount = result.masteredCount))
+            }
+
             updateBadges(result)
         }
     }

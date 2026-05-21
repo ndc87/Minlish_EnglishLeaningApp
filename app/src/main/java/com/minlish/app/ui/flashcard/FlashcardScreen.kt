@@ -318,10 +318,10 @@ fun FlashcardWritingContent(
             Text("Bạn thấy từ này thế nào?", style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                SrsButton("Lại", Color(0xFFE57373)) { onRate(0) }
+                SrsButton("Lại", Color(0xFFE57373)) { onRate(1) }
                 SrsButton("Khó", Color(0xFFFFB74D)) { onRate(2) }
-                SrsButton("Tốt", Color(0xFF81C784)) { onRate(4) }
-                SrsButton("Dễ", Color(0xFF64B5F6)) { onRate(5) }
+                SrsButton("Tốt", Color(0xFF81C784)) { onRate(3) }
+                SrsButton("Dễ", Color(0xFF64B5F6)) { onRate(4) }
             }
         }
     }

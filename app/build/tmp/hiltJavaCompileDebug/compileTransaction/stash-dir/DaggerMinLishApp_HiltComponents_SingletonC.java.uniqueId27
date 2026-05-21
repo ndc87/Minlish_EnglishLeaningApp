@@ -49,6 +49,7 @@ import com.minlish.app.di.UseCaseModule_ProvideCalculateSM2IntervalUseCaseFactor
 import com.minlish.app.domain.repository.VocabularyRepository;
 import com.minlish.app.domain.usecase.AddNewWordUseCase;
 import com.minlish.app.domain.usecase.CalculateSM2IntervalUseCase;
+import com.minlish.app.domain.usecase.CalculateStreakUseCase;
 import com.minlish.app.domain.usecase.ExportImportUseCase;
 import com.minlish.app.domain.usecase.GetAnalyticsUseCase;
 import com.minlish.app.domain.usecase.GetDueWordsUseCase;
@@ -510,6 +511,10 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
       return new GetAnalyticsUseCase(singletonCImpl.learningLogDao(), singletonCImpl.reviewDao());
     }
 
+    private CalculateStreakUseCase calculateStreakUseCase() {
+      return new CalculateStreakUseCase(singletonCImpl.learningLogDao(), singletonCImpl.userStatsDao());
+    }
+
     private GetDueWordsUseCase getDueWordsUseCase() {
       return new GetDueWordsUseCase(singletonCImpl.bindVocabularyRepositoryProvider.get());
     }
@@ -576,7 +581,7 @@ public final class DaggerMinLishApp_HiltComponents_SingletonC {
           return (T) new AuthViewModel(singletonCImpl.authRepositoryImplProvider.get());
 
           case 2: // com.minlish.app.ui.dashboard.DashboardViewModel 
-          return (T) new DashboardViewModel(singletonCImpl.userStatsDao(), singletonCImpl.learningLogDao(), singletonCImpl.databaseSeederProvider.get(), viewModelCImpl.getAnalyticsUseCase());
+          return (T) new DashboardViewModel(singletonCImpl.userStatsDao(), singletonCImpl.learningLogDao(), singletonCImpl.databaseSeederProvider.get(), viewModelCImpl.getAnalyticsUseCase(), viewModelCImpl.calculateStreakUseCase());
 
           case 3: // com.minlish.app.ui.flashcard.FlashcardViewModel 
           return (T) new FlashcardViewModel(singletonCImpl.cardDao(), singletonCImpl.reviewDao(), singletonCImpl.learningLogDao(), singletonCImpl.userStatsDao(), singletonCImpl.provideCalculateSM2IntervalUseCaseProvider.get(), viewModelCImpl.savedStateHandle);

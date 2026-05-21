@@ -182,10 +182,10 @@ class FlashcardViewModel @Inject constructor(
         val review = currentState.currentReview ?: return
 
         viewModelScope.launch {
-            // Rating is already 0-5 from the UI
-            val qualityRating = rating.coerceIn(0, 5)
+            // Rating is 1-4
+            val qualityRating = rating.coerceIn(1, 4)
 
-            // 2. Calculate SM-2
+            // 2. Calculate SRS
             val result = calculateSM2(
                 qualityRating = qualityRating,
                 currentRepetitions = review.repetitions,
@@ -214,12 +214,11 @@ class FlashcardViewModel @Inject constructor(
                 )
             )
 
-            // 5. Update User Stats (Simplified Streak update)
+            // 5. Update User Stats
             val stats = userStatsDao.getUserStats(review.userId).firstOrNull() 
                 ?: UserStatsEntity(review.userId, 0, 0, 0, 10)
             
             userStatsDao.insertOrUpdateStats(stats.copy(
-                currentStreak = if (qualityRating >= 3) stats.currentStreak + 1 else 0,
                 totalXp = stats.totalXp + (qualityRating * 10)
             ))
 

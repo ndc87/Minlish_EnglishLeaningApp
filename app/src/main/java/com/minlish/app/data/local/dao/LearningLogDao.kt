@@ -35,5 +35,8 @@ interface LearningLogDao {
     """)
     suspend fun getDailyReviewCountsSince(since: Long): List<DayCount>
 
+    @Query("SELECT DISTINCT date(timestamp/1000, 'unixepoch') FROM learning_logs ORDER BY timestamp DESC")
+    suspend fun getAllStudyDates(): List<String>
+
     data class DayCount(val date: String, val count: Int)
 }

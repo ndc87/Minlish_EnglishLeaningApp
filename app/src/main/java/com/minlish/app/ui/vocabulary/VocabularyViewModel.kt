@@ -44,12 +44,13 @@ class VocabularyViewModel @Inject constructor(
                              card.meaning.contains(query, ignoreCase = true)
             
             val review = reviewMap[card.id]
+            val masteredInterval = 30240 // 21 days in minutes
             val matchesFilter = when (filter) {
                 SrsFilter.ALL -> true
                 SrsFilter.NEW -> review == null || review.repetitions == 0
-                SrsFilter.LEARNING -> review != null && review.repetitions > 0 && review.nextDate > currentTime && review.interval < 21
+                SrsFilter.LEARNING -> review != null && review.repetitions > 0 && review.nextDate > currentTime && review.interval < masteredInterval
                 SrsFilter.DUE -> review != null && review.nextDate <= currentTime
-                SrsFilter.MASTERED -> review != null && review.interval >= 21
+                SrsFilter.MASTERED -> review != null && review.interval >= masteredInterval
             }
             
             matchesQuery && matchesFilter

@@ -1,50 +1,62 @@
 package com.minlish.app.domain.usecase
 
-import com.minlish.app.data.local.dao.StudyLogDao
-import com.minlish.app.data.local.dao.UserDao
-import kotlinx.coroutines.flow.firstOrNull
+import com.minlish.app.data.local.dao.LearningLogDao
+import com.minlish.app.data.local.dao.UserStatsDao
+import com.minlish.app.data.local.entity.UserStatsEntity
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 class CalculateStreakUseCase @Inject constructor(
-    private val studyLogDao: StudyLogDao,
-    private val userDao: UserDao
+    private val learningLogDao: LearningLogDao,
+    private val userStatsDao: UserStatsDao
 ) {
-    suspend operator fun invoke() {
-        // Get the logs to calculate active days
-        // Here we simplify by checking if the user met their goal yesterday
-        val user = userDao.getUser().firstOrNull() ?: return
+    suspend operator fun invoke(userId: String) {
+        val dates = learningLogDao.getAllStudyDates() // Format: YYYY-MM-DD, sorted DESC
         
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val today = sdf.format(Date())
         val calendar = Calendar.getInstance()
-        
-        // Define today bounds
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        val startOfToday = calendar.timeInMillis
-        val endOfToday = startOfToday + 86400000L
-        
-        // Yesterday bounds
-        val startOfYesterday = startOfToday - 86400000L
-        val endOfYesterday = startOfToday
-        
-        val yesterdayLogs = studyLogDao.getLogsForDay(startOfYesterday, endOfYesterday)
-        val todayLogs = studyLogDao.getLogsForDay(startOfToday, endOfToday)
-        
-        val reviewedYesterday = yesterdayLogs.sumOf { it.wordsReviewed }
-        val reviewedToday = todayLogs.sumOf { it.wordsReviewed }
-        
-        // Basic streak logic
-        var currentStreak = user.currentStreak
-        
-        if (reviewedYesterday == 0 && reviewedToday == 0) {
-            currentStreak = 0 // Streak broken
-        } else if (reviewedToday >= user.dailyGoalWords && reviewedYesterday >= user.dailyGoalWords) {
-            // Continuation logic can be expanded
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        val yesterday = sdf.format(calendar.time)
+
+        if (dates.isEmpty()) {
+            updateStats(userId, 0)
+            return
         }
+
+        // If no study today AND no study yesterday, streak is 0
+        if (!dates.contains(today) && !dates.contains(yesterday)) {
+            updateStats(userId, 0)
+            return
+        }
+
+        // Calculate streak
+        var streak = 0
+        val checkCalendar = Calendar.getInstance()
         
-        if(currentStreak != user.currentStreak) {
-            userDao.updateStreak(currentStreak)
+        // Start from today if exists, else start from yesterday
+        val startDateStr = if (dates.contains(today)) today else yesterday
+        val startDate = sdf.parse(startDateStr) ?: return
+        checkCalendar.time = startDate
+        
+        var currentCheckDate = sdf.format(checkCalendar.time)
+        
+        while (dates.contains(currentCheckDate)) {
+            streak++
+            checkCalendar.add(Calendar.DAY_OF_YEAR, -1)
+            currentCheckDate = sdf.format(checkCalendar.time)
+        }
+
+        updateStats(userId, streak)
+    }
+
+    private suspend fun updateStats(userId: String, streak: Int) {
+        val stats = userStatsDao.getUserStatsOnce(userId) ?: UserStatsEntity(userId, 0, 0, 0, 10)
+        if (stats.currentStreak != streak) {
+            userStatsDao.insertOrUpdateStats(stats.copy(currentStreak = streak))
         }
     }
 }

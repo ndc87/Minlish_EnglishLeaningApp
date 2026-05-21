@@ -1,17 +1,20 @@
 package com.minlish.app.domain.usecase
 
 import com.minlish.app.domain.model.SrsResult
-import java.util.Calendar
 import javax.inject.Inject
 
 /**
- * Spaced Repetition (SM-2) Algorithm implementation.
+ * Spaced Repetition Algorithm implementation.
  * Calculates the next review date and metrics based on learner performance.
  */
 class CalculateSM2IntervalUseCase @Inject constructor() {
 
+    /**
+     * @param qualityRating 1: Again, 2: Hard, 3: Good, 4: Easy
+     * @param currentInterval in minutes
+     */
     operator fun invoke(
-        qualityRating: Int, // 0 to 5
+        qualityRating: Int,
         currentRepetitions: Int,
         currentInterval: Int,
         currentEaseFactor: Double
@@ -19,31 +22,45 @@ class CalculateSM2IntervalUseCase @Inject constructor() {
         
         var nextRepetitions: Int
         var nextInterval: Int
-        var nextEaseFactor: Double
+        var nextEaseFactor: Double = currentEaseFactor
 
-        // Logic for Ease Factor update
-        // EF = EF + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
-        nextEaseFactor = currentEaseFactor + (0.1 - (5 - qualityRating) * (0.08 + (5 - qualityRating) * 0.02))
-        if (nextEaseFactor < 1.3) nextEaseFactor = 1.3
-
-        if (qualityRating >= 3) {
-            // Success: Calculate next interval
-            nextRepetitions = currentRepetitions + 1
-            nextInterval = when (nextRepetitions) {
-                1 -> 1
-                2 -> 6
-                else -> (currentInterval * nextEaseFactor).toInt()
+        when (qualityRating) {
+            1 -> { // Again - 1 minute
+                nextRepetitions = 0
+                nextInterval = 1
+                nextEaseFactor = (currentEaseFactor - 0.20).coerceAtLeast(1.3)
             }
-        } else {
-            // Failure: Reset repetitions but keep Ease Factor
-            nextRepetitions = 0
-            nextInterval = 1
+            2 -> { // Hard - 1 day (1440 mins)
+                nextRepetitions = currentRepetitions + 1
+                nextInterval = if (currentRepetitions == 0) 1440 else (currentInterval * 1.2).toInt()
+                nextEaseFactor = (currentEaseFactor - 0.15).coerceAtLeast(1.3)
+            }
+            3 -> { // Good - 3 days (4320 mins)
+                nextRepetitions = currentRepetitions + 1
+                nextInterval = when (nextRepetitions) {
+                    1 -> 4320
+                    else -> (currentInterval * nextEaseFactor).toInt()
+                }
+            }
+            4 -> { // Easy - 7 days (10080 mins)
+                nextRepetitions = currentRepetitions + 1
+                nextInterval = when (nextRepetitions) {
+                    1 -> 10080
+                    else -> (currentInterval * nextEaseFactor * 1.3).toInt()
+                }
+                nextEaseFactor = (currentEaseFactor + 0.15).coerceAtMost(2.5)
+            }
+            else -> {
+                nextRepetitions = currentRepetitions
+                nextInterval = currentInterval
+            }
         }
 
-        // Calculate NextDate
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, nextInterval)
-        val nextDate = calendar.timeInMillis
+        // Safety check for nextInterval
+        if (nextInterval <= 0) nextInterval = 1
+
+        // Calculate NextDate based on minutes
+        val nextDate = System.currentTimeMillis() + (nextInterval * 60 * 1000L)
 
         return SrsResult(
             repetitions = nextRepetitions,

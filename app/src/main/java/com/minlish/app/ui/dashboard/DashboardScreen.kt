@@ -170,7 +170,7 @@ fun DashboardPreview() {
     MinLishTheme {
         DashboardContent(
             stats = UserStatsEntity("user", 7, 1250, 42, 10),
-            analytics = com.minlish.app.domain.usecase.AppAnalytics(85.0, 72.0, "Intermediate (B1)", 120, 15, 8),
+            analytics = com.minlish.app.domain.usecase.AppAnalytics(85.0, 72.0, "Intermediate (B1)", 120, 15, 8, 42),
             badges = listOf(
                 Badge("1", "Người mới", "🌱", "", true),
                 Badge("2", "Chăm chỉ", "🔥", "", false)

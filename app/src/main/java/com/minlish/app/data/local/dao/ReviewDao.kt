@@ -34,11 +34,14 @@ interface ReviewDao {
     @Query("SELECT COUNT(*) FROM reviews")
     suspend fun getTotalCardCount(): Int
 
-    @Query("SELECT COUNT(*) FROM reviews WHERE repetitions > 0")
-    suspend fun getLearnedCardCount(): Int
+    @Query("SELECT COUNT(*) FROM reviews WHERE repetitions > 0 AND nextDate > :currentTime AND interval < :masteredInterval")
+    suspend fun getLearningCardCount(currentTime: Long, masteredInterval: Int): Int
 
     @Query("SELECT COUNT(*) FROM reviews WHERE nextDate <= :currentTime")
     suspend fun getDueCardCount(currentTime: Long): Int
+
+    @Query("SELECT COUNT(*) FROM reviews WHERE interval >= :masteredInterval")
+    suspend fun getMasteredCardCount(masteredInterval: Int): Int
 
     @Query("""
         SELECT cards.* FROM cards 
