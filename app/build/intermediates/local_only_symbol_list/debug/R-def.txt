@@ -1,0 +1,19 @@
+R_DEF: Internal format may change without notice
+local
+drawable ic_launcher_foreground
+string app_name
+string audio_desc
+string back
+string export_csv
+string finish
+string flashcard_title
+string import_csv
+string library_title
+string search_placeholder
+string srs_again
+string srs_easy
+string srs_good
+string srs_hard
+style Theme.MinLish
+xml backup_rules
+xml data_extraction_rules

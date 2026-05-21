@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MinLish</string>
+    <string name="audio_desc">Play Audio</string>
+    <string name="back">Back</string>
+    <string name="export_csv">Export CSV</string>
+    <string name="finish">Finish</string>
+    <string name="flashcard_title">Study Cards</string>
+    <string name="import_csv">Import CSV</string>
+    <string name="library_title">Vocabulary</string>
+    <string name="search_placeholder">Search words...</string>
+    <string name="srs_again">Again</string>
+    <string name="srs_easy">Easy</string>
+    <string name="srs_good">Good</string>
+    <string name="srs_hard">Hard</string>
+    <style name="Theme.MinLish" parent="android:Theme.Material.Light.NoActionBar"/>
+</resources>
